@@ -1,4 +1,4 @@
-import mysql.connector
+# import mysql.connector
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -6,13 +6,10 @@ mydb = mysql.connector.connect(
   password="dny800",
   database='customer'
 )
-
 mycursor = mydb.cursor()
-
-
-mycursor.execute("SELECT * FROM customers_table")
-myresult = mycursor.fetchall()
-for x in myresult:
-  print(x)
-
-mydb.commit()
+def READ():
+  mycursor.execute("SELECT * FROM employees_table")
+  myresult = mycursor.fetchall()
+  for x in myresult:
+    print(x)
+  mydb.commit()

@@ -28,9 +28,11 @@ mycursor = mydb.cursor()
 
 #read
 
-mycursor.execute("SELECT * FROM customers_table")
-myresult = mycursor.fetchall()
-for x in myresult:
-  print(x)
+# mycursor.execute("SELECT * FROM customers_table")
+# myresult = mycursor.fetchall()
+# for x in myresult:
+#   print(x)
+mycursor.execute("ALTER TABLE employees_table ADD joined_date DATE")
+
 
 mydb.commit()

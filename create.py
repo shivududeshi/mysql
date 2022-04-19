@@ -8,10 +8,6 @@ mydb = mysql.connector.connect(
 )
 
 mycursor = mydb.cursor()
+mycursor.execute("CREATE TABLE employees_table(id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), phone_no BIGINT, city VARCHAR(255) )")
 
-def UPDATE():
-  sql = "UPDATE employees_table SET name = %s WHERE id = %s"
-  val = ("ramesh", "1")
-  mycursor.execute(sql, val)
-
-  mydb.commit()
+mydb.commit()
