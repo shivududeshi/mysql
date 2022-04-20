@@ -1,16 +1,8 @@
 import mysql.connector
 from mysql_crud import *
 
-mydb = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="dny800",
-  database='customer'
-)
-mycursor = mydb.cursor()
-
 def is_continue():
-    flag=input('Do you want to continue? if yes, type "Y" or type "N"')
+    flag=input('Do you want to continue? if yes, type "Y" or type "N": ')
     if flag=='Y':
         return True
     if flag=='N':
@@ -30,9 +22,23 @@ def user_rudi(mycursor):
             UPDATE(mycursor)
         elif operation.upper()=='DELETE':
             UPDATE(mycursor)
+        else:
+            raise Exception('invalid operation')
         mydb.commit()
         flag=is_continue()
 
-user_rudi(mycursor)
+if __name__=='__main__':
+    try:
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="dny800",
+        database='customer'
+        )
+        mycursor = mydb.cursor()
+        user_rudi(mycursor)
+    except Exception as e:
+        print('Error is:', e)
+
 
         
