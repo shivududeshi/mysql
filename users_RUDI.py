@@ -1,5 +1,5 @@
-import mysql.connector
-from mysql_crud import *
+
+from mysql_crud import employee
 
 def is_continue():
     flag=input('Do you want to continue? if yes, type "Y" or type "N": ')
@@ -8,35 +8,30 @@ def is_continue():
     if flag=='N':
         return False
     else:
+        print('Invalid input')
         return is_continue()
 
-def user_rudi(mycursor):
+def user_rudi(emp):
     flag=True
     while flag:
         operation=input('Enter operation among <SEARCH>,<UPDATE>,<DELETE>,<INSERT>')
         if operation.upper()=='SEARCH':
-            SEARCH(mycursor)
+            emp.SEARCH()
         elif operation.upper()=='INSERT':
-            INSERT(mycursor)
+            emp.INSERT()
         elif operation.upper()=='UPDATE':
-            UPDATE(mycursor)
+            emp.UPDATE()
         elif operation.upper()=='DELETE':
-            UPDATE(mycursor)
+            emp.DELETE()
         else:
-            raise Exception('invalid operation')
-        mydb.commit()
+            print('invalid operation')
+            return user_rudi(emp)
         flag=is_continue()
 
 if __name__=='__main__':
     try:
-        mydb = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="dny800",
-        database='customer'
-        )
-        mycursor = mydb.cursor()
-        user_rudi(mycursor)
+        emp_1=employee()
+        user_rudi(emp_1)
     except Exception as e:
         print('Error is:', e)
 

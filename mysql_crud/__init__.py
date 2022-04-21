@@ -1,2 +1,2 @@
 
-from .operation import INSERT,DELETE,UPDATE,SEARCH
+from .operation import employee
