@@ -2,6 +2,15 @@
 from mysql_crud import employee
 
 def is_continue():
+    """
+    Check for continuation of CRUD operations from user
+
+    Args:
+        string (str):User input as Y or N
+
+    Returns
+        bool: return True for continuation, False for stop.
+    """
     flag=input('Do you want to continue? if yes, type "Y" or type "N": ')
     if flag=='Y':
         return True

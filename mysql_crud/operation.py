@@ -1,12 +1,13 @@
 import mysql.connector
 class employee():
-    mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="dny800",
-    database='customer'
-    )
-    mycursor = mydb.cursor()
+    def __init__(self):
+        self.mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="dny800",
+        database='customer'
+        )
+        self.mycursor = self.mydb.cursor()
 
     def DELETE(self):
         id_val=int(input('Enter the id to delete: '))
