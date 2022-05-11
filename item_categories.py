@@ -1,8 +1,13 @@
 import requests
 # import boto3
+import datetime
 import srp
 import json
 from pycognito import Cognito
+import hmac
+import hashlib
+import base64
+
 class egoclient:
 
     def __init__(self,url=None,headers=None,payload=None):
@@ -14,7 +19,6 @@ class egoclient:
     def login(self,username= None,password=None):
 
         #get aceess token using user_password_auth
-
         self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
         self.headers = {
                 "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
@@ -28,13 +32,11 @@ class egoclient:
 		"PASSWORD": password
 	    }
         }
-
         self.payload=json.dumps(payload)
-
         r = requests.post(url=self.url,data=self.payload,headers=self.headers)
         return r.json()['AuthenticationResult']['AccessToken']
 
-        #get access token using boto3
+        ## get access token using boto3
 
         # if username is None or password is None:
         #     return "please provide [username] and [password]"
@@ -54,64 +56,12 @@ class egoclient:
         #     return self.accesstoken
 
 
-        #get access token using pycognito module
+        ## get access token using pycognito module
 
-        # u = Cognito('us-east-1_e5uzGdrC6','2m2s4a2m2cn62pb6jfhrarqju1',username="vltest1@gmail.com")
-        # u.authenticate(password="Test@1234")
+        # u = Cognito('us-east-1_e5uzGdrC6','2m2s4a2m2cn62pb6jfhrarqju1',username=username)
+        # u.authenticate(password=password)
         # return u.access_token
-
-        #get access token using USER_SRP_AUTH
-
-        # srp_user = srp.User(username,password)
-        # abc,srp_a_bytes = srp_user.start_authentication()
-        # srp_a_hex =srp_a_bytes.hex()
-
-        # self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
-        # self.headers={
-        # "content-type" : "application/x-amz-json-1.1",
-        # "x-amz-target" : "AWSCognitoIdentityProviderService.InitiateAuth"
-        # }
-        # payload ={
-        #     "AuthFlow":"USER_SRP_AUTH",
-        #     "ClientId":"2m2s4a2m2cn62pb6jfhrarqju1",
-        #     "AuthParameters":{
-        #     "USERNAME":username,
-        #     "SRP_A":srp_a_hex
-        #     }
-        #     }
-        # self.payload=json.dumps(payload)
-
-        # r = requests.post(url=self.url, headers=self.headers, data=self.payload)
-        # print(r.status_code)
-        # print('')
-        # secret_key=r.json()['ChallengeParameters']['SECRET_BLOCK']
-        # user_name=r.json()['ChallengeParameters']['USERNAME']
-        # pool_id='_e5uzGdrC6'
-        # user_id_for_srp=r.json()['ChallengeParameters']['USER_ID_FOR_SRP']
-
-
-        # self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
-        # self.headers={
-        # "content-type" : "application/x-amz-json-1.1",
-        # "x-amz-target": "AWSCognitoIdentityProviderService.RespondToAuthChallenge"
-        # }
-        # payload ={
-        #     "ChallengeName":"PASSWORD_VERIFIER",
-        #     "ClientId":"2m2s4a2m2cn62pb6jfhrarqju1",
-        #     "ChallengeResponses":{
-        #     "USERNAME":user_name,
-        #     "PASSWORD_CLAIM_SECRET_BLOCK":secret_key,
-        #     "TIMESTAMP":"Tue May 10 05:00:06 UTC 2022",
-        #     "PASSWORD_CLAIM_SIGNATURE":"DDrdOVFR3Y2+hlR33b6pu+1bSLVKjeKJQe+xtvINwOs="
-        #     }
-        #     }
-        # self.payload=json.dumps(payload)
-
-        # res = requests.post(url=self.url, headers=self.headers, data=self.payload)
-        # print(res.status_code)
-        # print(res.json())
    
-
 
     def item_category(self):                
         self.url = "https://ca57f53chjghzmmjskz3e6sptq.appsync-api.us-east-1.amazonaws.com/graphql"
@@ -135,6 +85,67 @@ class egoclient:
         r = requests.post(url=self.url,data=self.payload,headers=self.headers)
         print(r.status_code)
         print(r.json())
+    
+
+    def login_with_srp(self,username= None,password=None):
+        
+        #get access token using USER_SRP_AUTH
+
+        srp_user = srp.User(username,password)
+        a,srp_a_bytes = srp_user.start_authentication()
+        srp_a_hex =srp_a_bytes.hex()
+
+        self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
+        self.headers={
+        "content-type" : "application/x-amz-json-1.1",
+        "x-amz-target" : "AWSCognitoIdentityProviderService.InitiateAuth"
+        }
+        payload ={
+            "AuthFlow":"USER_SRP_AUTH",
+            "ClientId":"2m2s4a2m2cn62pb6jfhrarqju1",
+            "AuthParameters":{
+            "USERNAME":username,
+            "SRP_A":srp_a_hex
+            }
+            }
+        self.payload=json.dumps(payload)
+
+        res1 = requests.post(url=self.url, headers=self.headers, data=self.payload)
+        print('call 1:',res1.status_code)
+
+        secret_key=res1.json()['ChallengeParameters']['SECRET_BLOCK']
+        user_name=res1.json()['ChallengeParameters']['USERNAME']
+        time_stamp=datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
+        pool_id='us-east-1_e5uzGdrC6'
+        user_id_for_srp=res1.json()['ChallengeParameters']['USER_ID_FOR_SRP']
+
+        raw_sign_input=pool_id+time_stamp+user_id_for_srp+secret_key
+        key=bytes(raw_sign_input,'UTF-8')
+        dig = hmac.new(key, digestmod=hashlib.sha256).digest()
+        signature_key=base64.b64encode(dig).decode()
+        print('signature key:',signature_key)
+
+
+        self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
+        self.headers={
+        "content-type" : "application/x-amz-json-1.1",
+        "x-amz-target": "AWSCognitoIdentityProviderService.RespondToAuthChallenge"
+        }
+        payload ={
+            "ChallengeName":"PASSWORD_VERIFIER",
+            "ClientId":"2m2s4a2m2cn62pb6jfhrarqju1",
+            "ChallengeResponses":{
+            "USERNAME":user_name,
+            "PASSWORD_CLAIM_SECRET_BLOCK":secret_key,
+            "TIMESTAMP":time_stamp,
+            "PASSWORD_CLAIM_SIGNATURE":signature_key
+            }
+            }
+        self.payload=json.dumps(payload)
+
+        res2 = requests.post(url=self.url, headers=self.headers, data=self.payload)
+        print('call 2:',res2.status_code)
+        print(res2.json())
 
 
 if __name__=='__main__':
