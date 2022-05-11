@@ -13,6 +13,27 @@ class egoclient:
 
     def login(self,username= None,password=None):
 
+        #get aceess token using user_password_auth
+
+        self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
+        self.headers = {
+                "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
+                "content-type": "application/x-amz-json-1.1"
+                }
+        payload={
+	    "AuthFlow": "USER_PASSWORD_AUTH",
+	    "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
+	    "AuthParameters": {
+		"USERNAME": username,
+		"PASSWORD": password
+	    }
+        }
+
+        self.payload=json.dumps(payload)
+
+        r = requests.post(url=self.url,data=self.payload,headers=self.headers)
+        return r.json()['AuthenticationResult']['AccessToken']
+
         #get access token using boto3
 
         # if username is None or password is None:
@@ -38,28 +59,6 @@ class egoclient:
         # u = Cognito('us-east-1_e5uzGdrC6','2m2s4a2m2cn62pb6jfhrarqju1',username="vltest1@gmail.com")
         # u.authenticate(password="Test@1234")
         # return u.access_token
-
-
-        #get aceess token using user_password_auth
-
-        self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
-        self.headers = {
-                "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
-                "content-type": "application/x-amz-json-1.1"
-                }
-        payload={
-	    "AuthFlow": "USER_PASSWORD_AUTH",
-	    "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
-	    "AuthParameters": {
-		"USERNAME": username,
-		"PASSWORD": password
-	    }
-        }
-
-        self.payload=json.dumps(payload)
-
-        r = requests.post(url=self.url,data=self.payload,headers=self.headers)
-        return r.json()['AuthenticationResult']['AccessToken']
 
         #get access token using USER_SRP_AUTH
 
