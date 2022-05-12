@@ -7,6 +7,7 @@ from pycognito import Cognito
 import hmac
 import hashlib
 import base64
+from pycognito.utils import RequestsSrpAuth
 
 class egoclient:
 
@@ -17,24 +18,36 @@ class egoclient:
     
 
     def login(self,username= None,password=None):
-
-        #get aceess token using user_password_auth
         self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
-        self.headers = {
-                "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
-                "content-type": "application/x-amz-json-1.1"
-                }
-        payload={
-	    "AuthFlow": "USER_PASSWORD_AUTH",
-	    "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
-	    "AuthParameters": {
-		"USERNAME": username,
-		"PASSWORD": password
-	    }
-        }
-        self.payload=json.dumps(payload)
-        r = requests.post(url=self.url,data=self.payload,headers=self.headers)
-        return r.json()['AuthenticationResult']['AccessToken']
+        auth = RequestsSrpAuth(
+        username="vltest1@gmail.com",
+        password="Test@1234",
+        user_pool_id='us-east-1_e5uzGdrC6',
+        client_id='2m2s4a2m2cn62pb6jfhrarqju1',
+        user_pool_region='us-east-1',
+        )
+
+        response = requests.get(self.url, auth=auth)
+        print(response.status_code)
+        print(response.json())
+
+        # #get aceess token using user_password_auth
+        # self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
+        # self.headers = {
+        #         "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
+        #         "content-type": "application/x-amz-json-1.1"
+        #         }
+        # payload={
+	    # "AuthFlow": "USER_PASSWORD_AUTH",
+	    # "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
+	    # "AuthParameters": {
+		# "USERNAME": username,
+		# "PASSWORD": password
+	    # }
+        # }
+        # self.payload=json.dumps(payload)
+        # r = requests.post(url=self.url,data=self.payload,headers=self.headers)
+        # return r.json()['AuthenticationResult']['AccessToken']
 
         ## get access token using boto3
 
@@ -56,12 +69,13 @@ class egoclient:
         #     return self.accesstoken
 
 
-        ## get access token using pycognito module
+        # # get access token using pycognito module
 
         # u = Cognito('us-east-1_e5uzGdrC6','2m2s4a2m2cn62pb6jfhrarqju1',username=username)
         # u.authenticate(password=password)
         # return u.access_token
-   
+
+
 
     def item_category(self):                
         self.url = "https://ca57f53chjghzmmjskz3e6sptq.appsync-api.us-east-1.amazonaws.com/graphql"
@@ -116,13 +130,14 @@ class egoclient:
         secret_key=res1.json()['ChallengeParameters']['SECRET_BLOCK']
         user_name=res1.json()['ChallengeParameters']['USERNAME']
         time_stamp=datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
-        pool_id='us-east-1_e5uzGdrC6'
+        pool_id='e5uzGdrC6'
         user_id_for_srp=res1.json()['ChallengeParameters']['USER_ID_FOR_SRP']
 
-        raw_sign_input=pool_id+time_stamp+user_id_for_srp+secret_key
+
+        raw_sign_input=pool_id+user_id_for_srp+secret_key+time_stamp
         key=bytes(raw_sign_input,'UTF-8')
-        dig = hmac.new(key, digestmod=hashlib.sha256).digest()
-        signature_key=base64.b64encode(dig).decode()
+        hmac_sign = hmac.new(key, digestmod=hashlib.sha256).digest()
+        signature_key=base64.b64encode(hmac_sign).decode()
         print('signature key:',signature_key)
 
 
