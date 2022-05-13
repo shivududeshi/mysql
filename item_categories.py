@@ -3,11 +3,11 @@ import requests
 import datetime
 import srp
 import json
-from pycognito import Cognito
+# from pycognito import Cognito
 import hmac
 import hashlib
 import base64
-from pycognito.utils import RequestsSrpAuth
+from pycognito import aws_srp
 
 class egoclient:
 
@@ -19,15 +19,17 @@ class egoclient:
 
     def login(self,username= None,password=None):
         self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
-        auth = RequestsSrpAuth(
+        aws = aws_srp.AWSSRP(
         username="vltest1@gmail.com",
         password="Test@1234",
-        user_pool_id='us-east-1_e5uzGdrC6',
+        pool_id='us-east-1_e5uzGdrC6',
         client_id='2m2s4a2m2cn62pb6jfhrarqju1',
-        user_pool_region='us-east-1',
+        pool_region='us-east-1'
         )
+        # aws = AWSSRP(username=USERNAME, password=PASSWORD, pool_id=POOL_ID,
+        #             client_id=CLIENT_ID)
 
-        response = requests.get(self.url, auth=auth)
+        response = requests.get(self.url, auth=aws)
         print(response.status_code)
         print(response.json())
 
@@ -105,9 +107,14 @@ class egoclient:
         
         #get access token using USER_SRP_AUTH
 
-        srp_user = srp.User(username,password)
-        a,srp_a_bytes = srp_user.start_authentication()
-        srp_a_hex =srp_a_bytes.hex()
+        aws = aws_srp.AWSSRP(
+        username=username,
+        password=password,
+        pool_id='us-east-1_e5uzGdrC6',
+        client_id='2m2s4a2m2cn62pb6jfhrarqju1',
+        pool_region='us-east-1'
+        )
+        srp_a_hex =aws.get_auth_params()['SRP_A']
 
         self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
         self.headers={
@@ -127,18 +134,23 @@ class egoclient:
         res1 = requests.post(url=self.url, headers=self.headers, data=self.payload)
         print('call 1:',res1.status_code)
 
+        srp_b=int(res1.json()['ChallengeParameters']['SRP_B'],16)
+        salt=res1.json()['ChallengeParameters']['SALT']
+        user_id_for_srp=res1.json()['ChallengeParameters']['USER_ID_FOR_SRP']
         secret_key=res1.json()['ChallengeParameters']['SECRET_BLOCK']
         user_name=res1.json()['ChallengeParameters']['USERNAME']
         time_stamp=datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
-        pool_id='e5uzGdrC6'
+        user_pool_id='us-east-1_e5uzGdrC6'
+
         user_id_for_srp=res1.json()['ChallengeParameters']['USER_ID_FOR_SRP']
 
-
-        raw_sign_input=pool_id+user_id_for_srp+secret_key+time_stamp
-        key=bytes(raw_sign_input,'UTF-8')
-        hmac_sign = hmac.new(key, digestmod=hashlib.sha256).digest()
-        signature_key=base64.b64encode(hmac_sign).decode()
-        print('signature key:',signature_key)
+        secret_key_bytes = base64.standard_b64decode(secret_key)
+        msg = bytearray(user_pool_id.split('_')[1], 'utf-8') + bytearray(user_id_for_srp, 'utf-8') + \
+            bytearray(secret_key_bytes) + bytearray(time_stamp, 'utf-8')
+        
+        hkdf = aws.get_password_authentication_key(user_id_for_srp,password,srp_b, salt)
+        hmac_obj = hmac.new(hkdf, msg, digestmod=hashlib.sha256)
+        signature_string = base64.standard_b64encode(hmac_obj.digest())
 
 
         self.url = "https://cognito-idp.us-east-1.amazonaws.com/"
@@ -153,20 +165,31 @@ class egoclient:
             "USERNAME":user_name,
             "PASSWORD_CLAIM_SECRET_BLOCK":secret_key,
             "TIMESTAMP":time_stamp,
-            "PASSWORD_CLAIM_SIGNATURE":signature_key
+            "PASSWORD_CLAIM_SIGNATURE":signature_string.decode('utf-8')
             }
             }
         self.payload=json.dumps(payload)
 
         res2 = requests.post(url=self.url, headers=self.headers, data=self.payload)
         print('call 2:',res2.status_code)
-        print(res2.json())
+        return res2.json()['AuthenticationResult']['AccessToken']
+
+        # srp_user = srp.User(username,password)
+        # a,srp_a_bytes = srp_user.start_authentication()
+        # srp_a_hex =srp_a_bytes.hex()
+        # raw_sign_input='e5uzGdrC6'+user_id_for_srp+secret_key+time_stamp
+        # print('raw sign input',raw_sign_input)
+        # key=bytes(raw_sign_input,'UTF-8')
+        # print('raw sign input buytes',key)
+        # hmac_sign = hmac.new(key, digestmod=hashlib.sha256).digest()
+        # # print(hmac_sign)
+        # signature_key=base64.b64encode(hmac_sign).decode()
 
 
 if __name__=='__main__':
     try:
         x=egoclient()
-        access_token=x.login(username="vltest1@gmail.com",password="Test@1234")
+        access_token=x.login_with_srp(username="vltest1@gmail.com",password="Test@1234")
         t = input('Enter <item> for item category or <sub> for subcriptions:')
         if t=='item':
             x.item_category()
