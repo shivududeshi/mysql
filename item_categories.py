@@ -18,38 +18,24 @@ class egoclient:
     
 
     def login(self,username= None,password=None):
+
+        #get aceess token using user_password_auth
         self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
-        aws = aws_srp.AWSSRP(
-        username="vltest1@gmail.com",
-        password="Test@1234",
-        pool_id='us-east-1_e5uzGdrC6',
-        client_id='2m2s4a2m2cn62pb6jfhrarqju1',
-        pool_region='us-east-1'
-        )
-        # aws = AWSSRP(username=USERNAME, password=PASSWORD, pool_id=POOL_ID,
-        #             client_id=CLIENT_ID)
-
-        response = requests.get(self.url, auth=aws)
-        print(response.status_code)
-        print(response.json())
-
-        # #get aceess token using user_password_auth
-        # self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
-        # self.headers = {
-        #         "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
-        #         "content-type": "application/x-amz-json-1.1"
-        #         }
-        # payload={
-	    # "AuthFlow": "USER_PASSWORD_AUTH",
-	    # "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
-	    # "AuthParameters": {
-		# "USERNAME": username,
-		# "PASSWORD": password
-	    # }
-        # }
-        # self.payload=json.dumps(payload)
-        # r = requests.post(url=self.url,data=self.payload,headers=self.headers)
-        # return r.json()['AuthenticationResult']['AccessToken']
+        self.headers = {
+                "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
+                "content-type": "application/x-amz-json-1.1"
+                }
+        payload={
+	    "AuthFlow": "USER_PASSWORD_AUTH",
+	    "ClientId": "2m2s4a2m2cn62pb6jfhrarqju1",
+	    "AuthParameters": {
+		"USERNAME": username,
+		"PASSWORD": password
+	    }
+        }
+        self.payload=json.dumps(payload)
+        r = requests.post(url=self.url,data=self.payload,headers=self.headers)
+        return r.json()['AuthenticationResult']['AccessToken']
 
         ## get access token using boto3
 
@@ -76,7 +62,6 @@ class egoclient:
         # u = Cognito('us-east-1_e5uzGdrC6','2m2s4a2m2cn62pb6jfhrarqju1',username=username)
         # u.authenticate(password=password)
         # return u.access_token
-
 
 
     def item_category(self):                
