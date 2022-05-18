@@ -150,17 +150,40 @@ class egoclient:
         print(r.status_code)
         print(r.json())
     
-    def add_cart(self,access_token):
+    def cart_list(self,access_token):
         self.url = "https://m76jgm5mv5a5ta56kwht6e6ipm.appsync-api.us-east-1.amazonaws.com/graphql"
         self.headers = {
                 'authorization': access_token,
                 "content-type" : "text/plain"
                 }
         payload={
-            "query":"""query ($customer_id: ID!){ listCarts(filter: {customer_id: {eq: $customer_id},pay_status:{eq:"UNPAID"}}) {items {customer_id customer_mobile customer_name id ciid grand_total pay_status item {defaultimg_url item_name tax_methods uom_name category item_id sub_total base_price delivery_charge distance discount_amount qty tax_amount subscription {address {aline1 aline2 city tag landmark postalcode}isDelivery meal_type notes order_dates sale_val}variants {display_name items {display_name}}}}grand_total total_tax total_deliverycharge total_discount items_value}}""","variables" : {"customer_id" : "d59e2310-c83f-4c1d-80ca-351504ce64e3"}}
+            "query":"""query ($customer_id: ID!){ listCarts(filter: {customer_id: {eq: $customer_id},pay_status:{eq:"UNPAID"}}) {items {customer_id customer_mobile customer_name id ciid grand_total pay_status item {defaultimg_url item_name tax_methods uom_name category item_id sub_total base_price delivery_charge distance discount_amount qty tax_amount subscription {address {aline1 aline2 city tag landmark postalcode}isDelivery meal_type notes order_dates sale_val}variants {display_name items {display_name}}}}grand_total total_tax total_deliverycharge total_discount items_value}}""",
+            "variables" : {"customer_id" : "d59e2310-c83f-4c1d-80ca-351504ce64e3"}
+            }
 
         self.payload=json.dumps(payload)
         r = requests.post(url=self.url,data=self.payload,headers=self.headers)
         print(r.status_code)
         print(r.json())
+    
+
+    def add_to_cart(self,access_token):
+
+        self.url = "https://m76jgm5mv5a5ta56kwht6e6ipm.appsync-api.us-east-1.amazonaws.com/graphql"
+        self.headers = {
+        'authorization': access_token,
+        "content-type" : "text/plain;charset=UTF-8"
+        }
+        payload = {
+            "query": "mutation ($input: CreateCartInput!){\n  createCart(input: $input) {\n  id\n   customer_id\n  }\n }",
+            "variables":"""{"input":{"customer_id":"d59e2310-c83f-4c1d-80ca-351504ce64e3","item":{"item_id":"1ae54853-3cb0-a1f9-bb74-9f8643a55641","qty":1,"subscription":[{"address":{"aline1":"4/440","aline2":"mobigesture","community":"abc ","landmark":"ACB","city":"hyd","state":"telangana","postalcode":"500034","tag":"office","customer_name":"shiva"},"addon_items":[],"isDelivery":true,"meal_type":"B","notes":"","order_dates":["2022/06/29","2022/06/30","2022/07/01","2022/07/02","2022/07/03","2022/07/04","2022/07/05","2022/07/06","2022/07/07","2022/07/08","2022/07/09","2022/07/10","2022/07/11","2022/07/12"]}],"variants":[{"display_name":"Duration","items":{"display_name":"14 Days"}}]}}}"""
+            }
+        self.payload=json.dumps(payload)
+
+        res = requests.post(url=self.url, headers=self.headers, data=self.payload)
+        print(res.status_code)
+        print(res.json())
+    
+
+
 
