@@ -18,6 +18,17 @@ class egoclient:
         self.client_id='1elqc1ok4eqb1c9sjlhhiq74sd'
     
     def login_with_srp(self,username,password):
+
+        """
+        Gets access token using 'USER_SRP_AUTH' auth_flow login method with help of requests module
+        py:function::
+
+        Args:
+            username,password (string): credentials to sign in.
+
+        Returns:
+            string: returns access token which is used for authorised calls.
+        """
         
         #get access token using USER_SRP_AUTH
         aws = aws_srp.AWSSRP(
@@ -86,6 +97,16 @@ class egoclient:
         return res2.json()['AuthenticationResult']['AccessToken']
 
     def login(self,username,password):
+        """
+        Gets access token using 'USER_PASSWORD_AUTH' auth_flow login method with help of requests module
+        py:function::
+
+        Args:
+            username,password (string): credentials to sign in.
+
+        Returns:
+            string: returns access token which is used for authorised calls.
+        """
 
         #get aceess token using 'user_password_auth' flow with requests module 
         self.url = 'https://cognito-idp.us-east-1.amazonaws.com'
@@ -106,6 +127,16 @@ class egoclient:
         return r.json()['AuthenticationResult']['AccessToken']
 
     def login_with_boto3(self,username,password):
+        """
+        Gets access token using 'USER_PASSWORD_AUTH' auth_flow login method with help of boto3 module
+        py:function::
+
+        Args:
+            username,password (string): credentials to sign in.
+
+        Returns:
+            string: returns access token which is used for authorised calls.
+        """
         # get access token using boto3
         client = boto3.client('cognito-idp',region_name=self.pool_id.split('_')[0])
         response = client.initiate_auth(
@@ -120,6 +151,16 @@ class egoclient:
         return self.accesstoken
 
     def login_with_cognito(self,username,password):
+        """
+        Gets access token with help of cognito module
+        py:function::
+
+        Args:
+            username,password (string): credentials to sign in.
+
+        Returns:
+            string: returns access token which is used for authorised calls.
+        """
         # get access token using pycognito module
 
         u = Cognito(self.pool_id,self.client_id,username=username)
@@ -127,7 +168,17 @@ class egoclient:
         return u.access_token
 
 
-    def item_category(self):                
+    def item_category(self):
+        """
+        prints the list of item categories in json format
+        py:function::
+
+        Args:
+            None:
+
+        Returns:
+            None:
+        """
         self.url = "https://ca57f53chjghzmmjskz3e6sptq.appsync-api.us-east-1.amazonaws.com/graphql"
         self.headers = {
                 'x-api-key': 'da2-orjjngnz3ffc3jjnn75bfm4roi',
@@ -140,6 +191,16 @@ class egoclient:
 
 
     def subcription(self,access_token):
+        """
+        prints the list of subscriptions in json format
+        py:function::
+
+        Args:
+            access_token (string):access token is used to get protected data
+
+        Returns:
+            None:
+        """
         self.url = "https://4du5xi23jneq5gmwctl2vl42ty.appsync-api.us-east-1.amazonaws.com/graphql"
         self.headers = {
                 'authorization': access_token,
@@ -151,6 +212,16 @@ class egoclient:
         print(r.json())
     
     def cart_list(self,access_token):
+        """
+        prints the list of cart items in json format
+        py:function::
+
+        Args:
+            access_token (string):access token is used to get protected data
+
+        Returns:
+            None:
+        """
         self.url = "https://m76jgm5mv5a5ta56kwht6e6ipm.appsync-api.us-east-1.amazonaws.com/graphql"
         self.headers = {
                 'authorization': access_token,
@@ -168,6 +239,16 @@ class egoclient:
     
 
     def add_to_cart(self,access_token):
+        """
+        prints customer details in json format
+        py:function::
+
+        Args:
+            access_token (string):access token is used to get protected data
+
+        Returns:
+            None:
+        """
 
         self.url = "https://m76jgm5mv5a5ta56kwht6e6ipm.appsync-api.us-east-1.amazonaws.com/graphql"
         self.headers = {
