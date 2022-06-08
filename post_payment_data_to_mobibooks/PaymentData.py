@@ -5,12 +5,20 @@ import boto3
 from boto3.dynamodb.conditions import Attr
 
 class payment_data:
+
     def __init__(self):
         self.dynamoDbUrl = os.environ.get('DYNAMODBURL')
+        self.region_name=os.environ.get('REGION_NAME')
+        self.Location_Id=os.environ.get('LOCATION_ID')
+        self.general_ledger_id=os.environ.get('GENERAL_LEDGER_ID')
         self.dynamodb = boto3.resource('dynamodb',region_name=os.environ.get('REGION_NAME'))
+        env_vars=(self.dynamoDbUrl,self.region_name,self.Location_Id,self.general_ledger_id)
+        if None in env_vars:
+            raise Exception('one/more environment variable(s) is/are None')
 
     def prepare_payment(self,data):
-        print('prepare_json-{}'.format(data))
+        if data is None or len(data)==0 or type(data)!=dict:
+            raise Exception('incorrect input data format to "prepare_payment" method,required format is none empty dict')
         pay_obj = {}
         pay_obj["force_isverified"] = False
         pay_obj["is_multi_loc_vou"] = False
@@ -38,22 +46,25 @@ class payment_data:
 
     def GLinesData(self,data):
         customer=self.getCustomerByName(data["dynamodb"]["customer_name"])
-        customer_id=int(customer['sl_id'])
-        Glines = []
-        seq=1
-        for item in data['cart']['Items']:
-            Gline={}
-            Gline["gu_id"]="00000000-0000-0000-0000-000000000000"
-            Gline["seq"]=seq
-            Gline["generalledger_id"]=1010
-            Gline["location_id"]=1
-            Gline["subledger_id"]=customer_id
-            Gline["narration"]=''
-            Gline["line_id"]=0
-            Gline["brs_date"]=None
-            Gline["amount"]=item['grand_total']
-            seq+=1
-            Glines.append(Gline)
+        if customer=='':
+            raise Exception(f'customer {data["dynamodb"]["customer_name"]} does not exist')
+        else:
+            customer_id=int(customer['sl_id'])
+            Glines = []
+            seq=1
+            for item in data['cart']['Items']:
+                Gline={}
+                Gline["gu_id"]="00000000-0000-0000-0000-000000000000"
+                Gline["seq"]=seq
+                Gline["generalledger_id"]=1010
+                Gline["location_id"]=1
+                Gline["subledger_id"]=customer_id
+                Gline["narration"]=''
+                Gline["line_id"]=0
+                Gline["brs_date"]=None
+                Gline["amount"]=item['grand_total']
+                seq+=1
+                Glines.append(Gline)
         return Glines
 
 

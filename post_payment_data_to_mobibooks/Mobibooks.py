@@ -143,8 +143,8 @@ class Mobibooks:
                     return ''
                 else:
                     o = json.loads(res)
-                    if 'error' in o: #Error Condition
-                        raise BooksException(code = o['error']['code'], message = o['error']['message'] )
+                    # if 'error' in o: #Error Condition
+                    #     raise BooksException(code = o['error']['code'], message = o['error']['message'] )
                     return o
             except BooksException:
                 raise

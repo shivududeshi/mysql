@@ -1,9 +1,36 @@
-# import boto3
-# import os
-# import uuid
+
+import json
+import boto3
+import os
 from post_payment_mobibooks import PostPaymentToMobibooks
 from PaymentData import payment_data
 
+
+def to_error_sqs(error):
+
+  client=boto3.client('sqs',region_name=os.environ.get('REGION_NAME'))
+  customer_id = boto3.client('sts').get_caller_identity()['Account']
+  queue_name = os.environ.get('ERROR_QUEUE_NAME')
+  res=client.send_message(QueueUrl=f'https://sqs.us-east-1.amazonaws.com/{customer_id}/{queue_name}',MessageBody=str(error))
+  
+
+def lambda_handler(event):
+  try:
+    #comment out to run with testcase data given below
+    # after uncomment pass 'data' as argument to 'prepare_payment' function
+
+    # data=json.loads(event['Records'][0]['body'])
+    user_pay=payment_data()
+    post_payment_data=user_pay.prepare_payment(event)
+    x=PostPaymentToMobibooks()
+    voucher=x.post_payment(post_payment_data)
+    return voucher
+  except Exception as error_message:
+      
+    to_error_sqs(error_message)
+
+
+#sample testcase data to check the function
 event={
   "cart": {
     "Items": [
@@ -196,17 +223,6 @@ event={
     "customer_mobile": "9550163323"
   }
 }
-def lambda_handler(event):
-    # try:     
-    user_pay=payment_data()
-    post_payment_data=user_pay.prepare_payment(event)
-    x=PostPaymentToMobibooks()
-    x.post_payment(post_payment_data)
-    # except Exception as error_message:
-    #     client=boto3.client('sqs',region_name=os.environ.get('REGION_NAME'))
-    #     customer_id = boto3.client('sts').get_caller_identity()['Account']
-    #     queue_name = os.environ.get('ERROR_QUEUE_NAME')
-    #     res=client.send_message(QueueUrl=f'https://sqs.us-west-2.amazonaws.com/{customer_id}/{queue_name}',MessageBody=error_message.args[0],MessageGroupId='PaymentError')
-    #     print('hiiii')
+
 lambda_handler(event)
 
