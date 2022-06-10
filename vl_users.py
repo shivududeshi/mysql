@@ -1,15 +1,12 @@
-
 import boto3
 import os
 class VL_Users():
     def __init__(self):
-        self.client=boto3.client('cognito-idp',region_name=os.environ.get('REGION_NAME'),aws_access_key_id='AKIAZUWGKLYWJV3UZIHK',aws_secret_access_key='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')
-        self.pool_id='us-east-1_moqlSAg9d'
-        # self.client=boto3.client('cognito-idp',region_name=os.environ.get('REGION_NAME'),aws_access_key_id=os.environ.get('aws_access_key_id'),aws_secret_access_key=os.environ.get('aws_secret_access_key'))
-        # self.pool_id=os.environ.get('user_pool_id')
-        # env_vars=(os.environ.get('REGION_NAME'),os.environ.get('aws_access_key_id'),os.environ.get('aws_secret_access_key'),os.environ.get('user_pool_id'))
-        # if None in env_vars:
-            # raise Exception('one/more credentials is/are None')
+        self.client=boto3.client('cognito-idp',region_name=os.environ.get('REGION_NAME'),aws_access_key_id=os.environ.get('aws_access_key_id'),aws_secret_access_key=os.environ.get('aws_secret_access_key'))
+        self.pool_id=os.environ.get('user_pool_id')
+        env_vars=(os.environ.get('REGION_NAME'),os.environ.get('aws_access_key_id'),os.environ.get('aws_secret_access_key'),os.environ.get('user_pool_id'))
+        if None in env_vars:
+            raise Exception('one/more credentials is/are None')
 
     def group_users(self,group_list):
         users={}
