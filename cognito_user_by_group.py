@@ -1,10 +1,17 @@
-from vl_users import VL_Users
+from group_users import Users
+# import json
+
+event={'groups':['admin','developer']}
+# event={'groups':'All'}
 
 if __name__=='__main__':
     try:
-        vl=VL_Users()
-        group=input('Enter group name to get users:').strip().split(',')
-        group_user_list=vl.group_users(group)
-        print(f'users of given groups: ',group_user_list)
+        mbg=Users()
+        # group=json.loads(event["params"]["querystring"]["groups"])
+        group=event["groups"]
+        if type(group[0])==str and group[0]=='all':
+            group=mbg.all_groups()
+        group_user_list=mbg.group_users(group)
+        # return group_user_list
     except Exception as error:
         print('Error is: ',error)
